@@ -57,10 +57,12 @@ int main() {
     printf("3-Client\n");
     scanf("%d", &choice);
     if (choice != 1) {
-      printf("Enter the IP address:\n");
-      scanf("%s", ip);
       printf("Enter the port:\n");
       scanf("%s", port);
+      if (choice == 3) {
+        printf("Enter the IP address of the server:\n");
+        scanf("%s", ip);
+      }
     }
     char mode[2];
     sprintf(mode, "%d", choice);
