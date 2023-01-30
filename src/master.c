@@ -46,12 +46,32 @@ int main() {
         exit(1);
     }
 
+    // Initialization process:
 
-    char * arg_list_A[] = { "/usr/bin/konsole", "-e", "./bin/processA", NULL };
+    char ip[15], port[5];
+    int choice;
+
+    printf("Choose execution type (write number):\n");
+    printf("1-Normal\n");
+    printf("2-Server\n");
+    printf("3-Client\n");
+    scanf("%d", &choice);
+    if (choice != 1) {
+      printf("Enter the IP address:\n");
+      scanf("%s", ip);
+      printf("Enter the port:\n");
+      scanf("%s", port);
+    }
+    char mode[2];
+    sprintf(mode, "%d", choice);
+
+    // Spawn processes:
+
+    char * arg_list_A[] = { "/usr/bin/konsole", "-e", "./bin/processA", mode, ip, port, NULL };
     char * arg_list_B[] = { "/usr/bin/konsole", "-e", "./bin/processB", NULL };
 
-    pid_t pid_procA = spawn("/usr/bin/konsole", arg_list_A);
     pid_t pid_procB = spawn("/usr/bin/konsole", arg_list_B);
+    pid_t pid_procA = spawn("/usr/bin/konsole", arg_list_A);
     
     // Wait for children termination:
     int status;
