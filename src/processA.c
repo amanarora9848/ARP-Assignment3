@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     int mode = 1;
     // Declare a socket server connection
     int server_fd, new_socket;
-    char buffer[2] = {0};
+    char buffer[10] = {0};
 
     // Check the argv value for mode (1, 2, 3):
     if (argc < 2) {
@@ -179,6 +179,7 @@ int main(int argc, char *argv[]) {
     // Create shared memory:
     char shm_name[20];
     sprintf(shm_name, "%s%d", "/bmp_memory", mode);
+    mvprintw(LINES - 3, 1, shm_name);
     int shm_fd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
     if (shm_fd < 0)
     {
@@ -204,6 +205,7 @@ int main(int argc, char *argv[]) {
     // Open semaphore:
     char sem_name[20];
     sprintf(sem_name, "%s%d", "/bmp_sem", mode);
+    mvprintw(LINES - 2, 1, sem_name);
     sem_t *sem_id = sem_open(sem_name, O_CREAT, S_IRUSR | S_IWUSR, 1);
     if (sem_id == SEM_FAILED)
     {
@@ -270,7 +272,7 @@ int main(int argc, char *argv[]) {
                     perror("Error writing to log (A)");
             }
             else if (retval) {
-                if (read(new_socket, buffer, 2) < 0) {
+                if (read(new_socket, buffer, sizeof(buffer)) < 0) {
                     length = snprintf(log_msg, 64, "Error reading from client: %d.\n", errno);
                     if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
                         perror("Error writing to log (A)");
@@ -281,7 +283,7 @@ int main(int argc, char *argv[]) {
         // If client, send command to server
         if (mode == 3) {
             sprintf(buffer, "%d", cmd);
-            if (write(server_fd, buffer, 2) < 0) {
+            if (write(server_fd, buffer, sizeof(buffer)) < 0) {
                 length = snprintf(log_msg, 64, "Error writing to server: %d.\n", errno);
                 if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
                     perror("Error writing to log (A)");

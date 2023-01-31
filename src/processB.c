@@ -64,9 +64,12 @@ int main(int argc, char const *argv[])
     
     const size_t shm_size = WIDTH * HEIGHT * sizeof(rgb_pixel_t);
 
+    sleep(1);
+
     // Open shared memory:
     char shm_name[20];
     sprintf(shm_name, "%s%s", "/bmp_memory", argv[1]);
+    mvprintw(LINES - 3, 1, shm_name);
     int shm_fd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
     if (shm_fd < 0 && errno != EINTR)
     {
@@ -79,6 +82,7 @@ int main(int argc, char const *argv[])
     // Open semaphore:
     char sem_name[20];
     sprintf(sem_name, "%s%s", "/bmp_sem", argv[1]);
+    mvprintw(LINES - 2, 1, sem_name);
     sem_t *sem_id = sem_open(sem_name, 1);
     if (sem_id == SEM_FAILED)
     {
