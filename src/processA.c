@@ -13,9 +13,10 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/select.h>
 
 #define DT 25 // Time in ms (40Hz)
-#define PORT 55224
 
 int finish = 0;
 
@@ -59,66 +60,83 @@ int main(int argc, char *argv[]) {
     // if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
     //     perror("Error writing to log (A)");
 
-    // Check the argv value and do different things if input is "n", "s" or "c":
+    int mode = 1;
+    // Declare a socket server connection
+    int server_fd, new_socket;
+    char buffer[2] = {0};
+
+    // Check the argv value for mode (1, 2, 3):
     if (argc != 4) {
-        printf("Usage: ./processA [n|s|c]\n");
+        printf("Usage: ./processA [1|2|3] [ip] [port]\n");
     }
     else {
         // convert argv string to integer
-        int mode = atoi(argv[1]);
-        if (mode == 1) {
-            printf("Process A started in normal mode.\n");
+        mode = atoi(argv[1]);
+    }
+
+    if (mode != 1) {
+
+        int port = atoi(argv[3]); 
+        // Declare the server and client address
+        struct sockaddr_in server_address, client_address;
+        // int opt = 1;
+        int addrlen = sizeof(client_address);
+
+        // Create the socket file descriptiors
+        if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+        {
+            perror("Socket failed");
+            exit(EXIT_FAILURE);
         }
-        else if (mode == 2) {
-            char *ip = argv[2];
-            int port = atoi(argv[3]);
-            printf("Process A started in server mode.\n");
-            // Declare a socket server connection
-            int server_fd, new_socket;
-            // Declare the server and client address
-            struct sockaddr_in server_address, client_address;
-            // int opt = 1;
-            int addrlen = sizeof(client_address);
-            char buffer[1024] = {0};
-            // Create the socket file descriptiors
-            if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-            {
-                perror("socket failed");
-                exit(EXIT_FAILURE);
-            }
-            bzero((char *) &server_address, sizeof(server_address));
+        bzero((char *)&server_address, sizeof(server_address));
 
-            // Assign the IP, port
-            server_address.sin_family = AF_INET;
-            server_address.sin_addr.s_addr = inet_addr(ip);
-            server_address.sin_port = htons(port);
+        // Assign the IP, port
+        server_address.sin_family = AF_INET;
+        server_address.sin_port = htons(port);
 
+        // Server
+        if (mode == 2) {
+            server_address.sin_addr.s_addr = INADDR_ANY;
             // Attach the port to the defined port
-            if (bind(server_fd, (struct sockaddr *)&server_address, sizeof(server_address))<0) {
-                perror("bind failed");
+            if (bind(server_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+            {
+                length = snprintf(log_msg, 64, "Bind failed: %d.\n", errno);
+                if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
+                    perror("Error writing to log (A)");
                 exit(EXIT_FAILURE);
             }
 
             // Listen for connections
-            if (listen(server_fd, 3) < 0)
+            if (listen(server_fd, 2) < 0)
             {
-                perror("listen failed");
+                length = snprintf(log_msg, 64, "Listen failed: %d.\n", errno);
+                if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
+                    perror("Error writing to log (A)");
                 exit(EXIT_FAILURE);
             }
+
             // Accept the connection
-            if ((new_socket = accept(server_fd, (struct sockaddr *)&client_address, (socklen_t*)&addrlen))<0)
+            if ((new_socket = accept(server_fd, (struct sockaddr *)&client_address, (socklen_t *)&addrlen)) < 0)
             {
-                perror("accept");
+                length = snprintf(log_msg, 64, "Accept failed: %d.\n", errno);
+                if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
+                    perror("Error writing to log (A)");
                 exit(EXIT_FAILURE);
             }
-            // // Call a function to read the buffer from the client
-            // inputread(new_socket, buffer, 1024);
+
+        // Client
+        } else {
+            server_address.sin_addr.s_addr = inet_addr(argv[2]);
+
+            // Connect to server
+            if (connect(server_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+            {
+                length = snprintf(log_msg, 64, "Connection failed: %d.\n", errno);
+                if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
+                    perror("Error writing to log (A)");
+                exit(EXIT_FAILURE);
+            }
         }
-        else if (mode == 3) {
-            printf("Process A started in client mode.\n");
-        }
-        else
-            printf("Unknown error\n");
     }
 
     // Time structure for the sleep:
@@ -228,8 +246,44 @@ int main(int argc, char *argv[]) {
     while (!finish)
     {
         // Get input in non-blocking mode
-        // TODO: consider input from keyboard, or from buffer received from remote socket client. Use the same variable and set it in the if-else on top.
-        int cmd = getch();
+        int cmd;
+        if (mode == 2) {
+            // Use a select to read from client in non-blocking mode
+
+            // Variables for select()
+            fd_set rfds;
+            int retval;
+            struct timeval tv = {0, 0};
+
+            // Create the set of read fds:
+            FD_ZERO(&rfds);
+            FD_SET(new_socket, &rfds);
+
+            retval = select(new_socket+1, &rfds, NULL, NULL, &tv);
+            if (retval < 0 && errno != EINTR) {
+                length = snprintf(log_msg, 64, "Error in select: %d.\n", errno);
+                if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
+                    perror("Error writing to log (A)");
+            }
+            else if (retval) {
+                if (read(new_socket, buffer, 2) < 0) {
+                    length = snprintf(log_msg, 64, "Error reading from client: %d.\n", errno);
+                    if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
+                        perror("Error writing to log (A)");
+                } else cmd = atoi(buffer);
+            }   
+        } else cmd = getch();
+
+        // If client, send command to server
+        if (mode == 3) {
+            sprintf(buffer, "%d", cmd);
+            if (write(server_fd, buffer, 2) < 0) {
+                length = snprintf(log_msg, 64, "Error writing to server: %d.\n", errno);
+                if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
+                    perror("Error writing to log (A)");
+            }
+        }
+        
 
         // If user resizes screen, re-draw UI...
         if (cmd == KEY_RESIZE)
