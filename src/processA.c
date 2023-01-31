@@ -17,6 +17,7 @@
 #include <sys/select.h>
 
 #define DT 25 // Time in ms (40Hz)
+#define PORT 55555
 
 int finish = 0;
 
@@ -66,8 +67,8 @@ int main(int argc, char *argv[]) {
     char buffer[2] = {0};
 
     // Check the argv value for mode (1, 2, 3):
-    if (argc != 4) {
-        printf("Usage: ./processA [1|2|3] [ip] [port]\n");
+    if (argc < 2) {
+        printf("Usage: ./processA [1|2|3] [port] [ip]\n");
     }
     else {
         // convert argv string to integer
@@ -76,7 +77,6 @@ int main(int argc, char *argv[]) {
 
     if (mode != 1) {
 
-        int port = atoi(argv[3]); 
         // Declare the server and client address
         struct sockaddr_in server_address, client_address;
         // int opt = 1;
@@ -92,11 +92,13 @@ int main(int argc, char *argv[]) {
 
         // Assign the IP, port
         server_address.sin_family = AF_INET;
-        server_address.sin_port = htons(port);
+        if (argv[2][0] != '0') server_address.sin_port = htons(PORT);
+        else server_address.sin_port = htons(atoi(argv[2]));
 
         // Server
         if (mode == 2) {
-            server_address.sin_addr.s_addr = INADDR_ANY;
+            if (argv[3][0] != '0') server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+            else server_address.sin_addr.s_addr = inet_addr(argv[3]);
             // Attach the port to the defined port
             if (bind(server_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
             {
@@ -126,7 +128,7 @@ int main(int argc, char *argv[]) {
 
         // Client
         } else {
-            server_address.sin_addr.s_addr = inet_addr(argv[2]);
+            server_address.sin_addr.s_addr = inet_addr(argv[3]);
 
             // Connect to server
             if (connect(server_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
@@ -199,7 +201,8 @@ int main(int argc, char *argv[]) {
     }
 
     // Open semaphore:
-    char sem_name[] = "/bmp_sem";
+    char sem_name[20];
+    sprintf(sem_name, "%s%d", "/bmp_sem", mode);
     sem_t *sem_id = sem_open(sem_name, O_CREAT, S_IRUSR | S_IWUSR, 1);
     if (sem_id == SEM_FAILED)
     {

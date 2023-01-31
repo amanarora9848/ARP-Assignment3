@@ -6,6 +6,7 @@
 #include <semaphore.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <string.h>
 
 int spawn(const char * program, char * arg_list[]) {
 
@@ -28,8 +29,28 @@ int spawn(const char * program, char * arg_list[]) {
 
 int main() {
 
+    // Initialization process:
+
+    char ip[15] = {}, port[5] = {};
+    int choice;
+
+    printf("Choose execution type (write number):\n");
+    printf("1-Normal\n");
+    printf("2-Server\n");
+    printf("3-Client\n");
+    scanf("%d", &choice);
+    if (choice != 1) {
+      printf("Enter the port (write 0 to use default port):\n");
+      scanf("%s", port);
+      printf("Enter the IP address of the server (if server you can write 0 to take any local ip):\n");
+      scanf("%s", ip);
+    }
+    char mode[2];
+    sprintf(mode, "%d", choice);
+
     // Open semaphore:
-    char sem_name[] = "/bmp_sem";
+    char sem_name[20];
+    sprintf(sem_name, "%s%s", "/bmp_sem", mode);
     sem_t *sem_id = sem_open(sem_name, O_CREAT, S_IRUSR | S_IWUSR, 1);
     if (sem_id == SEM_FAILED)
     {
@@ -46,31 +67,10 @@ int main() {
         exit(1);
     }
 
-    // Initialization process:
-
-    char ip[15], port[5];
-    int choice;
-
-    printf("Choose execution type (write number):\n");
-    printf("1-Normal\n");
-    printf("2-Server\n");
-    printf("3-Client\n");
-    scanf("%d", &choice);
-    if (choice != 1) {
-      printf("Enter the port:\n");
-      scanf("%s", port);
-      if (choice == 3) {
-        printf("Enter the IP address of the server:\n");
-        scanf("%s", ip);
-      }
-    }
-    char mode[2];
-    sprintf(mode, "%d", choice);
-
     // Spawn processes:
 
-    char * arg_list_A[] = { "/usr/bin/konsole", "-e", "./bin/processA", mode, ip, port, NULL };
-    char * arg_list_B[] = { "/usr/bin/konsole", "-e", "./bin/processB", NULL };
+    char * arg_list_A[] = { "/usr/bin/konsole", "-e", "./bin/processA", mode, port, ip, NULL };
+    char * arg_list_B[] = { "/usr/bin/konsole", "-e", "./bin/processB", mode, NULL };
 
     pid_t pid_procB = spawn("/usr/bin/konsole", arg_list_B);
     pid_t pid_procA = spawn("/usr/bin/konsole", arg_list_A);

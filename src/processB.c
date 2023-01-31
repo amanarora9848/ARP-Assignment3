@@ -76,7 +76,8 @@ int main(int argc, char const *argv[])
     }
 
     // Open semaphore:
-    char sem_name[] = "/bmp_sem";
+    char sem_name[20];
+    sprintf(sem_name, "%s%s", "/bmp_sem", argv[1]);
     sem_t *sem_id = sem_open(sem_name, 1);
     if (sem_id == SEM_FAILED)
     {
