@@ -65,7 +65,8 @@ int main(int argc, char const *argv[])
     const size_t shm_size = WIDTH * HEIGHT * sizeof(rgb_pixel_t);
 
     // Open shared memory:
-    char shm_name[] = "/bmp_memory";
+    char shm_name[20];
+    sprintf(shm_name, "%s%s", "/bmp_memory", argv[1]);
     int shm_fd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
     if (shm_fd < 0 && errno != EINTR)
     {

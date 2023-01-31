@@ -177,7 +177,8 @@ int main(int argc, char *argv[]) {
         perror("Error writing to log (A)");
 
     // Create shared memory:
-    char shm_name[] = "/bmp_memory";
+    char shm_name[20];
+    sprintf(shm_name, "%s%d", "/bmp_memory", mode);
     int shm_fd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
     if (shm_fd < 0)
     {
