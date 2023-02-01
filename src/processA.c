@@ -21,6 +21,25 @@
 
 int finish = 0;
 
+int spawn(const char * program, char * arg_list[]) {
+
+  pid_t child_pid = fork();
+
+  if(child_pid < 0) {
+    perror("Error while forking...");
+    return -1;
+  }
+
+  else if(child_pid != 0) {
+    return child_pid;
+  }
+
+  else {
+    if(execvp (program, arg_list) < 0) perror("Exec failed");
+    return -1;
+  }
+}
+
 int write_log(int fd_log, char *msg, int lmsg) {
     char log_msg[64];
     time_t now = time(NULL);
@@ -33,15 +52,39 @@ int write_log(int fd_log, char *msg, int lmsg) {
     return 0;
 }
 
-// int inputread(int socket, char *buffer, int size) {
-//     read(socket, buffer, size);
-//     printf("%s\n", buffer);
-// }
-
 int main(int argc, char *argv[]) {
-    // Some time for process B to initialize:
+
+    int mode = 1;
+    int change_mode = 0;
+    // Declare a socket server connection
+    int server_fd, new_socket;
+    char buffer[10] = {0};
+    char ip[15], port[10];
+
+    // Check the argv value for mode (1, 2, 3):
+    if (argc != 4) {
+        printf("Usage: ./processA [1|2|3] [port](0) [ip](0), use 0 in the indicated args to use default values.\n");
+    }
+    else {
+        // Parse args
+        mode = atoi(argv[1]);
+        sprintf(port, "%s", argv[2]);
+        sprintf(ip, "%s", argv[3]);
+    }
+
+    cycle:
+
+    if (change_mode) {
+        char aux[5];
+        sprintf(aux, "%d", mode);
+        char * args[] = { "/usr/bin/konsole", "-e", "./bin/processB", aux, NULL };
+        spawn("/usr/bin/konsole", args);
+        change_mode = 0;
+    }
+
+    // Wait for process B to initialize
     sleep(1);
-    
+
     // Get the PID of process B:
     FILE *cmd = popen("pgrep processB", "r");
     char result[10];
@@ -50,30 +93,18 @@ int main(int argc, char *argv[]) {
     sscanf(result, "%d", &pid_b);
 
     // Log file:
-    int fd_log = creat("./logs/processA.txt", 0666);
+    char logfile[30];
+    sprintf(logfile, "%s%d%s", "./logs/processA", mode, ".txt");
+    int fd_log = creat(logfile, 0666);
     if (fd_log < 0)
         perror("Error opening log file (A)");
     char log_msg[64];
     int length;
 
     // Write processB PID to log:
-    // length = snprintf(log_msg, 64, "PID process B: %d.\n", pid_b);
-    // if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
-    //     perror("Error writing to log (A)");
-
-    int mode = 1;
-    // Declare a socket server connection
-    int server_fd, new_socket;
-    char buffer[10] = {0};
-
-    // Check the argv value for mode (1, 2, 3):
-    if (argc < 2) {
-        printf("Usage: ./processA [1|2|3] [port] [ip]\n");
-    }
-    else {
-        // convert argv string to integer
-        mode = atoi(argv[1]);
-    }
+    length = snprintf(log_msg, 64, "PID process B: %d.\n", pid_b);
+    if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
+        perror("Error writing to log (A)");
 
     if (mode != 1) {
 
@@ -92,13 +123,13 @@ int main(int argc, char *argv[]) {
 
         // Assign the IP, port
         server_address.sin_family = AF_INET;
-        if (argv[2][0] != '0') server_address.sin_port = htons(PORT);
-        else server_address.sin_port = htons(atoi(argv[2]));
+        if (port[0] != '0') server_address.sin_port = htons(PORT);
+        else server_address.sin_port = htons(atoi(port));
 
         // Server
         if (mode == 2) {
-            if (argv[3][0] != '0') server_address.sin_addr.s_addr = htonl(INADDR_ANY);
-            else server_address.sin_addr.s_addr = inet_addr(argv[3]);
+            if (ip[0] != '0') server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+            else server_address.sin_addr.s_addr = inet_addr(ip);
             // Attach the port to the defined port
             if (bind(server_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
             {
@@ -128,7 +159,7 @@ int main(int argc, char *argv[]) {
 
         // Client
         } else {
-            server_address.sin_addr.s_addr = inet_addr(argv[3]);
+            server_address.sin_addr.s_addr = inet_addr(ip);
 
             // Connect to server
             if (connect(server_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
@@ -252,7 +283,7 @@ int main(int argc, char *argv[]) {
     while (!finish)
     {
         // Get input in non-blocking mode
-        int cmd;
+        int cmd, cmd_server;
         if (mode == 2) {
             // Use a select to read from client in non-blocking mode
 
@@ -277,7 +308,8 @@ int main(int argc, char *argv[]) {
                     if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
                         perror("Error writing to log (A)");
                 } else cmd = atoi(buffer);
-            }   
+            }
+            cmd_server = getch();   
         } else cmd = getch();
 
         // If client, send command to server
@@ -292,7 +324,7 @@ int main(int argc, char *argv[]) {
         
 
         // If user resizes screen, re-draw UI...
-        if (cmd == KEY_RESIZE)
+        if (cmd == KEY_RESIZE || cmd_server == KEY_RESIZE)
         {
             if (first_resize)
             {
@@ -305,7 +337,7 @@ int main(int argc, char *argv[]) {
         }
 
         // Else, if user presses button...
-        else if (cmd == KEY_MOUSE)
+        else if (cmd == KEY_MOUSE || cmd_server == KEY_MOUSE)
         {
             if (getmouse(&event) == OK)
             {
@@ -325,10 +357,27 @@ int main(int argc, char *argv[]) {
                 }
                 
                 // Pressed exit button:
-                else if (check_button_pressed(exit_btn, &event))
-                {
+                else if (check_button_pressed(exit_btn, &event)) finish = 1;
+
+                // Pressed normal button:
+                else if (check_button_pressed(normal_btn, &event)) {
+                    change_mode = 1;
+                    mode = 1;
                     finish = 1;
-                    kill(pid_b, SIGTERM);
+                }
+
+                // Pressed client button:
+                else if (check_button_pressed(client_btn, &event)) {
+                    change_mode = 1;
+                    mode = 3;
+                    finish = 1;
+                }
+
+                // Pressed server button:
+                else if (check_button_pressed(server_btn, &event)) {
+                    change_mode = 1;
+                    mode = 2;
+                    finish = 1;
                 }
             }
         }
@@ -379,6 +428,11 @@ int main(int argc, char *argv[]) {
         nanosleep(&delay_nano, NULL);
     }
 
+    // Terminate process B
+    kill(pid_b, SIGTERM);
+    sem_post(sem_id); // Unlock sem_wait because we have not designed signal to work in multithread like semaphore
+    sleep(1);
+
     // Termination:
     length = snprintf(log_msg, 64, "Exited successfully.");
     if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
@@ -387,6 +441,20 @@ int main(int argc, char *argv[]) {
     close(shm_fd);
     sem_close(sem_id);
     close(fd_log);
+    reset_console_ui();
     endwin();
+
+    // Change mode routine
+    if (change_mode) {
+        finish = 0;
+        if (mode != 1) {
+            printf("Enter the port (write 0 to use default port):\n");
+            scanf("%s", port);
+            printf("Enter the IP address of the server (if server you can write 0 to take any local ip):\n");
+            scanf("%s", ip);
+        }
+        goto cycle;
+    }
+
     return 0;
 }

@@ -103,6 +103,56 @@
                     "ignoreFailures": true
                 }
             ]
+        },
+
+        {
+            "name": "Process A Normal",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/processA",
+            "args": ["1"],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+
+        {
+            "name": "Process B Normal",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/processB",
+            "args": ["1"],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
         }
 
     ],
@@ -111,6 +161,11 @@
         {
             "name": "Server+Client",
             "configurations": ["Process A Server", "Process B Server", "Process A Client", "Process B Client"]
+        },
+
+        {
+            "name": "Normal",
+            "configurations": ["Process A Normal", "Process B Normal"]
         }
     ]
 }

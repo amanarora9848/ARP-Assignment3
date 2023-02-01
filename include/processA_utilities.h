@@ -13,7 +13,7 @@ typedef struct {
 // Circle variable definition
 CIRCLE circle;
 // Window for buttons
-WINDOW *print_btn, *exit_btn;
+WINDOW *print_btn, *exit_btn, *normal_btn, *client_btn, *server_btn;
 // Mouse event variable
 MEVENT event;
 
@@ -22,8 +22,11 @@ int BTN_SIZE_X = 7;
 
 // Method to instantiate button window
 void make_print_button() {
-    print_btn = newwin(BTN_SIZE_Y, BTN_SIZE_X, LINES / 2 - 3 * BTN_SIZE_Y / 2 , (COLS - BTN_SIZE_X));
-    exit_btn = newwin(BTN_SIZE_Y, BTN_SIZE_X, LINES / 2 + BTN_SIZE_Y / 2 , (COLS - BTN_SIZE_X));
+    normal_btn = newwin(BTN_SIZE_Y, BTN_SIZE_X, LINES / 6, (COLS - BTN_SIZE_X));
+    client_btn = newwin(BTN_SIZE_Y, BTN_SIZE_X, LINES / 3, (COLS - BTN_SIZE_X));
+    server_btn = newwin(BTN_SIZE_Y, BTN_SIZE_X, LINES / 2, (COLS - BTN_SIZE_X));
+    print_btn = newwin(BTN_SIZE_Y, BTN_SIZE_X, 2 * LINES / 3, (COLS - BTN_SIZE_X));
+    exit_btn = newwin(BTN_SIZE_Y, BTN_SIZE_X, 5 * LINES / 6, (COLS - BTN_SIZE_X));
 }
 
 // Draw button with colored background
@@ -54,6 +57,9 @@ int check_button_pressed(WINDOW *btn, MEVENT *event) {
 // Method to draw lateral elements of the UI (button)
 void draw_side_ui() {
     mvvline(0, COLS - BTN_SIZE_X - 1, ACS_VLINE, LINES);
+    draw_btn(normal_btn, 'N', 4);
+    draw_btn(client_btn, 'C', 5);
+    draw_btn(server_btn, 'S', 6);
     draw_btn(print_btn, 'P', 2);
     draw_btn(exit_btn, 'X', 3);
     refresh();
@@ -141,6 +147,9 @@ void init_console_ui() {
     init_pair(1, COLOR_BLACK, COLOR_GREEN);
     init_pair(2, COLOR_WHITE, COLOR_BLUE);
     init_pair(3, COLOR_BLACK, COLOR_CYAN);
+    init_pair(4, COLOR_WHITE, COLOR_MAGENTA);
+    init_pair(5, COLOR_WHITE, COLOR_GREEN);
+    init_pair(6, COLOR_WHITE, COLOR_YELLOW);
 
     // Initialize UI elements
     set_circle();
@@ -162,6 +171,10 @@ void reset_console_ui() {
 
     // Free resources
     delwin(print_btn);
+    delwin(exit_btn);
+    delwin(normal_btn);
+    delwin(client_btn);
+    delwin(server_btn);
 
     // Clear screen
     erase();

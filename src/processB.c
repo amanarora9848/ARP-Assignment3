@@ -36,7 +36,9 @@ void handler_exit(int sig)
 int main(int argc, char const *argv[])
 {
     // Log file:
-    int fd_log = creat("./logs/processB.txt", 0666);
+    char logfile[30];
+    sprintf(logfile, "%s%s%s", "./logs/processB", argv[1], ".txt");
+    int fd_log = creat(logfile, 0666);
     if (fd_log < 0) {
         perror("Error opening log file (B)");
     }
