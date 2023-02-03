@@ -441,6 +441,8 @@ int main(int argc, char *argv[]) {
     close(shm_fd);
     sem_close(sem_id);
     close(fd_log);
+    close(server_fd);
+    close(new_socket);
     reset_console_ui();
     endwin();
 
