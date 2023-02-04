@@ -55,11 +55,12 @@ int write_log(int fd_log, char *msg, int lmsg) {
 int main(int argc, char *argv[]) {
 
     int mode = 1;
+    int new_mode;
     int change_mode = 0;
     // Declare a socket server connection
-    int server_fd, new_socket;
+    int server_fd, new_socket, port;
     char buffer[10] = {0};
-    char ip[15], port[10];
+    char ip[15];
 
     // Check the argv value for mode (1, 2, 3):
     if (argc != 4) {
@@ -68,14 +69,15 @@ int main(int argc, char *argv[]) {
     else {
         // Parse args
         mode = atoi(argv[1]);
-        sprintf(port, "%s", argv[2]);
+        if (argv[2][0] == '0') port = PORT;
+        else sscanf(argv[2], "%d", &port);
         sprintf(ip, "%s", argv[3]);
     }
 
     cycle:
 
     if (change_mode) {
-        char aux[5];
+        char aux[2];
         sprintf(aux, "%d", mode);
         char * args[] = { "/usr/bin/konsole", "-e", "./bin/processB", aux, NULL };
         spawn("/usr/bin/konsole", args);
@@ -86,9 +88,9 @@ int main(int argc, char *argv[]) {
     sleep(1);
 
     // Get the PID of process B:
-    FILE *cmd = popen("pgrep processB", "r");
+    FILE *search = popen("pgrep processB", "r");
     char result[10];
-    fgets(result, sizeof(result), cmd);
+    fgets(result, sizeof(result), search);
     pid_t pid_b;
     sscanf(result, "%d", &pid_b);
 
@@ -123,8 +125,7 @@ int main(int argc, char *argv[]) {
 
         // Assign the IP, port
         server_address.sin_family = AF_INET;
-        if (port[0] != '0') server_address.sin_port = htons(PORT);
-        else server_address.sin_port = htons(atoi(port));
+        server_address.sin_port = htons(port);
 
         // Server
         if (mode == 2) {
@@ -183,6 +184,8 @@ int main(int argc, char *argv[]) {
     // Initialize UI
     init_console_ui();
 
+    printw(getcwd(NULL, 0));
+
     // Declare circle center variables:
     int circle_x;
     int circle_y;
@@ -230,6 +233,7 @@ int main(int argc, char *argv[]) {
         close(shm_fd);
         shm_unlink(shm_name);
         bmp_destroy(bmp);
+        close(fd_log);
         exit(1);
     }
 
@@ -237,7 +241,7 @@ int main(int argc, char *argv[]) {
     char sem_name[20];
     sprintf(sem_name, "%s%d", "/bmp_sem", mode);
     mvprintw(LINES - 2, 1, sem_name);
-    sem_t *sem_id = sem_open(sem_name, O_CREAT, S_IRUSR | S_IWUSR, 1);
+    sem_t *sem_id = sem_open(sem_name, O_CREAT | O_RDWR, 0666, 0);
     if (sem_id == SEM_FAILED)
     {
         length = snprintf(log_msg, 64, "Error opening semaphore: %d.\n", errno);
@@ -246,6 +250,7 @@ int main(int argc, char *argv[]) {
         close(shm_fd);
         shm_unlink(shm_name);
         bmp_destroy(bmp);
+        close(fd_log);
         exit(1);
     }
 
@@ -260,6 +265,7 @@ int main(int argc, char *argv[]) {
         close(shm_fd);
         shm_unlink(shm_name);
         sem_close(sem_id);
+        close(fd_log);
         exit(1);
     }
 
@@ -276,6 +282,7 @@ int main(int argc, char *argv[]) {
         close(shm_fd);
         shm_unlink(shm_name);
         sem_close(sem_id);
+        close(fd_log);
         exit(1);
     }
 
@@ -310,7 +317,10 @@ int main(int argc, char *argv[]) {
                 } else cmd = atoi(buffer);
             }
             cmd_server = getch();   
-        } else cmd = getch();
+        } else {
+            cmd = getch();
+            mvprintw(LINES - 4, 1, "%d", cmd);
+        } 
 
         // If client, send command to server
         if (mode == 3) {
@@ -362,21 +372,21 @@ int main(int argc, char *argv[]) {
                 // Pressed normal button:
                 else if (check_button_pressed(normal_btn, &event)) {
                     change_mode = 1;
-                    mode = 1;
+                    new_mode = 1;
                     finish = 1;
                 }
 
                 // Pressed client button:
                 else if (check_button_pressed(client_btn, &event)) {
                     change_mode = 1;
-                    mode = 3;
+                    new_mode = 3;
                     finish = 1;
                 }
 
                 // Pressed server button:
                 else if (check_button_pressed(server_btn, &event)) {
                     change_mode = 1;
-                    mode = 2;
+                    new_mode = 2;
                     finish = 1;
                 }
             }
@@ -439,22 +449,31 @@ int main(int argc, char *argv[]) {
         perror("Error writing to log (A)");
     bmp_destroy(bmp);
     close(shm_fd);
+    shm_unlink(shm_name);
     sem_close(sem_id);
+    sem_unlink(sem_name);
     close(fd_log);
-    close(server_fd);
-    close(new_socket);
+    if (mode != 1){
+        close(server_fd);
+        if (mode == 2) close(new_socket);
+    }
     reset_console_ui();
     endwin();
+
+    //sleep(1);
 
     // Change mode routine
     if (change_mode) {
         finish = 0;
-        if (mode != 1) {
-            printf("Enter the port (write 0 to use default port):\n");
-            scanf("%s", port);
+        if (new_mode != 1) {
+            try:
+                printf("Enter the port (write 0 to use default port):\n");
+                if (scanf("%d", &port) < 0) perror("Error getting port");
+            fflush(stdin);
             printf("Enter the IP address of the server (if server you can write 0 to take any local ip):\n");
             scanf("%s", ip);
         }
+        mode = new_mode;
         goto cycle;
     }
 

@@ -63,15 +63,6 @@ int main() {
         exit(1);
     }
 
-    // Initialize semaphore:
-    if (sem_init(sem_id, 1, 0) < 0)
-    {
-        perror("Error initializing semaphore");
-        sem_close(sem_id);
-        sem_unlink(sem_name);
-        exit(1);
-    }
-
     // Spawn processes:
 
     char * arg_list_A[] = { "/usr/bin/konsole", "-e", "./bin/processA", mode, port, ip, NULL };
@@ -83,10 +74,6 @@ int main() {
     // Wait for children termination:
     int status;
     waitpid(pid_procA, &status, 0);
-  
-    // Close semaphore:
-    sem_close(sem_id);
-    sem_unlink(sem_name);
 
     printf ("Main program exiting with status %d\n", status);
     return 0;

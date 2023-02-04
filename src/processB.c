@@ -40,7 +40,9 @@ int main(int argc, char const *argv[])
     sprintf(logfile, "%s%s%s", "./logs/processB", argv[1], ".txt");
     int fd_log = creat(logfile, 0666);
     if (fd_log < 0) {
+        endwin();
         perror("Error opening log file (B)");
+        sleep(3);
     }
     char log_msg[64];
     int length;
@@ -55,18 +57,21 @@ int main(int argc, char const *argv[])
     {
         length = snprintf(log_msg, 64, "Cannot catch SIGTERM.\n");
         if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
+            endwin();
             perror("Error writing to log (cmd)");
+            sleep(3);
     }
+
+    sleep(1);
 
     // Utility variable to avoid trigger resize event on launch
     int first_resize = TRUE;
 
     // Initialize UI
     init_console_ui();
+    printw(getcwd(NULL, 0));
     
     const size_t shm_size = WIDTH * HEIGHT * sizeof(rgb_pixel_t);
-
-    sleep(1);
 
     // Open shared memory:
     char shm_name[20];
@@ -77,7 +82,10 @@ int main(int argc, char const *argv[])
     {
         length = snprintf(log_msg, 64, "Error opening shared memory: %d.\n", errno);
         if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
+            endwin();
             perror("Error writing to log (B)");
+            sleep(3);
+        close(fd_log);
         exit(1);
     }
 
@@ -85,14 +93,14 @@ int main(int argc, char const *argv[])
     char sem_name[20];
     sprintf(sem_name, "%s%s", "/bmp_sem", argv[1]);
     mvprintw(LINES - 2, 1, sem_name);
-    sem_t *sem_id = sem_open(sem_name, 1);
+    sem_t *sem_id = sem_open(sem_name, O_CREAT | O_RDWR, 0666, 0);
     if (sem_id == SEM_FAILED)
     {
         length = snprintf(log_msg, 64, "Error opening semaphore: %d.\n", errno);
         if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
             perror("Error writing to log (B)");
         close(shm_fd);
-        shm_unlink(shm_name);
+        close(fd_log);
         exit(1);
     }
 
@@ -104,9 +112,8 @@ int main(int argc, char const *argv[])
         if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
             perror("Error writing to log (B)");
         close(shm_fd);
-        shm_unlink(shm_name);
         sem_close(sem_id);
-        sem_unlink(sem_name);
+        close(fd_log);
         exit(1);
     }
 
@@ -179,7 +186,6 @@ int main(int argc, char const *argv[])
     if (write_log(fd_log, log_msg, length) < 0 && errno != EINTR)
         perror("Error writing to log (B)");
     close(shm_fd);
-    shm_unlink(shm_name);
     sem_close(sem_id);
     close(fd_log);
     endwin();
