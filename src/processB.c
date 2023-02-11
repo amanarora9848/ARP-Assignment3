@@ -69,7 +69,6 @@ int main(int argc, char const *argv[])
 
     // Initialize UI
     init_console_ui();
-    printw(getcwd(NULL, 0));
     
     const size_t shm_size = WIDTH * HEIGHT * sizeof(rgb_pixel_t);
 

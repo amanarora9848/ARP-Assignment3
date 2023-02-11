@@ -184,8 +184,6 @@ int main(int argc, char *argv[]) {
     // Initialize UI
     init_console_ui();
 
-    printw(getcwd(NULL, 0));
-
     // Declare circle center variables:
     int circle_x;
     int circle_y;
@@ -319,7 +317,7 @@ int main(int argc, char *argv[]) {
             cmd_server = getch();   
         } else {
             cmd = getch();
-            mvprintw(LINES - 4, 1, "%d", cmd);
+            mvprintw(LINES - 4, 1, "cc: %d", cmd);
         } 
 
         // If client, send command to server
@@ -396,7 +394,7 @@ int main(int argc, char *argv[]) {
         else if (cmd == KEY_LEFT || cmd == KEY_RIGHT || cmd == KEY_UP || cmd == KEY_DOWN)
         {
             // Move and draw circle:
-            mvprintw(LINES - 5, 1, "%d", cmd);
+            mvprintw(LINES - 5, 1, "pmc: %d", cmd);
             move_circle(cmd);
             draw_circle();
             
