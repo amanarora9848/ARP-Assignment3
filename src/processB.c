@@ -62,7 +62,7 @@ int main(int argc, char const *argv[])
             sleep(3);
     }
 
-    sleep(1);
+    sleep(2);
 
     // Utility variable to avoid trigger resize event on launch
     int first_resize = TRUE;

@@ -17,7 +17,7 @@
 #include <sys/select.h>
 
 #define DT 25 // Time in ms (40Hz)
-#define PORT 55555
+#define PORT 4000
 
 int finish = 0;
 
@@ -290,7 +290,7 @@ int main(int argc, char *argv[]) {
     while (!finish)
     {
         // Get input in non-blocking mode
-        int cmd, cmd_server;
+        int cmd, cmd_server = 0;
         if (mode == 2) {
             // Use a select to read from client in non-blocking mode
 
@@ -396,6 +396,7 @@ int main(int argc, char *argv[]) {
         else if (cmd == KEY_LEFT || cmd == KEY_RIGHT || cmd == KEY_UP || cmd == KEY_DOWN)
         {
             // Move and draw circle:
+            mvprintw(LINES - 5, 1, "%d", cmd);
             move_circle(cmd);
             draw_circle();
             
@@ -466,10 +467,9 @@ int main(int argc, char *argv[]) {
     if (change_mode) {
         finish = 0;
         if (new_mode != 1) {
-            try:
-                printf("Enter the port (write 0 to use default port):\n");
-                if (scanf("%d", &port) < 0) perror("Error getting port");
-            fflush(stdin);
+            printf("Enter the port (write 0 to use default port):\n");
+            if (scanf("%d", &port) < 0) perror("Error getting port");
+            //fflush(stdin);
             printf("Enter the IP address of the server (if server you can write 0 to take any local ip):\n");
             scanf("%s", ip);
         }

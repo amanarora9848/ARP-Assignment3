@@ -1,12 +1,55 @@
-[16:09:33]: PID process B: 24126.
-[16:09:33]: Center of circle drawn at (940, 340).
-[16:09:38]: Center of circle drawn at (920, 340).
-[16:09:38]: Center of circle drawn at (920, 320).
-[16:09:38]: Center of circle drawn at (920, 300).
-[16:09:38]: Center of circle drawn at (920, 280).
-[16:09:38]: Center of circle drawn at (900, 280).
-[16:09:39]: Center of circle drawn at (880, 280).
-[16:09:39]: Center of circle drawn at (860, 280).
-[16:09:39]: Center of circle drawn at (860, 300).
-[16:09:39]: Center of circle drawn at (880, 300).
-[16:09:41]: Exited successfully.
+[17:20:43]: PID process B: 1168.
+[17:20:43]: Center of circle drawn at (940, 360).
+[17:20:46]: Center of circle drawn at (920, 360).
+[17:20:46]: Center of circle drawn at (900, 360).
+[17:20:47]: Center of circle drawn at (880, 360).
+[17:20:47]: Center of circle drawn at (860, 360).
+[17:20:47]: Center of circle drawn at (860, 340).
+[17:20:47]: Center of circle drawn at (860, 320).
+[17:20:47]: Center of circle drawn at (840, 320).
+[17:20:47]: Center of circle drawn at (840, 300).
+[17:20:47]: Center of circle drawn at (820, 300).
+[17:20:48]: Center of circle drawn at (800, 300).
+[17:20:48]: Center of circle drawn at (800, 280).
+[17:20:48]: Center of circle drawn at (780, 280).
+[17:20:48]: Center of circle drawn at (780, 260).
+[17:20:48]: Center of circle drawn at (760, 260).
+[17:20:48]: Center of circle drawn at (760, 240).
+[17:20:48]: Center of circle drawn at (740, 240).
+[17:20:48]: Center of circle drawn at (740, 220).
+[17:20:48]: Center of circle drawn at (720, 220).
+[17:20:49]: Center of circle drawn at (720, 200).
+[17:20:49]: Center of circle drawn at (700, 200).
+[17:20:49]: Center of circle drawn at (700, 180).
+[17:20:49]: Center of circle drawn at (680, 180).
+[17:20:49]: Center of circle drawn at (680, 160).
+[17:20:49]: Center of circle drawn at (660, 160).
+[17:20:49]: Center of circle drawn at (640, 160).
+[17:20:50]: Center of circle drawn at (620, 160).
+[17:20:50]: Center of circle drawn at (600, 160).
+[17:20:50]: Center of circle drawn at (580, 160).
+[17:20:50]: Center of circle drawn at (560, 160).
+[17:20:50]: Center of circle drawn at (540, 160).
+[17:20:50]: Center of circle drawn at (520, 160).
+[17:20:50]: Center of circle drawn at (500, 160).
+[17:20:50]: Center of circle drawn at (480, 160).
+[17:20:50]: Center of circle drawn at (480, 180).
+[17:20:50]: Center of circle drawn at (480, 200).
+[17:20:50]: Center of circle drawn at (480, 220).
+[17:20:50]: Center of circle drawn at (480, 240).
+[17:20:51]: Center of circle drawn at (480, 260).
+[17:20:51]: Center of circle drawn at (480, 280).
+[17:20:51]: Center of circle drawn at (480, 300).
+[17:20:51]: Center of circle drawn at (500, 300).
+[17:20:51]: Center of circle drawn at (500, 320).
+[17:20:51]: Center of circle drawn at (480, 320).
+[17:20:51]: Center of circle drawn at (480, 340).
+[17:20:51]: Center of circle drawn at (460, 340).
+[17:20:59]: Exited successfully.wn at (460, 360).
+[17:20:51]: Center of circle drawn at (440, 360).
+[17:20:52]: Center of circle drawn at (460, 360).
+[17:20:52]: Center of circle drawn at (460, 380).
+[17:20:52]: Center of circle drawn at (440, 380).
+[17:20:52]: Center of circle drawn at (460, 380).
+[17:20:52]: Center of circle drawn at (460, 400).
+[17:21:07]: Exited successfully.
