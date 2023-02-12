@@ -41,7 +41,7 @@ The two consoles:
 
 - The first konsole window of process A simulates movement of an object, in our case a blue circle. The object can be moved with the arrow keys. In order to save a snapshot of the particular instance, press the `P` or the **Print** button. In order to terminate both process A and B and respective konsoles, we have implemented an extra `X` or **Stop** button. 
 - For assignment 3, we also implemented additional 3 buttons, used to change the mode of functionality (Normal -> `N`, Server -> `S`, and Client -> `C`). The **Server** and **Client** modes are the modes which use sockets based communication.
-- In the lower left corner, we have included some "debugging" information like the last keyboard command, the curerent command, and the shared memory and semaphore info.
+- In the lower left corner, we have included some "debugging" information like the last moving command (arrow keys), the curerent command, and the shared memory and semaphore info.
 
 ![Process A](images/processA.png)
 
@@ -72,7 +72,7 @@ The two consoles:
 
 - The `BGRa` matrix, which is available and updated continuously in the shared memory, is accessed and used directly in the process B to compute the centre of the circle, instead of saving a separate copy of bmp file for the same purpose.
 
-- To allow complete siumulation of this server-client communication in a single computer, we create different shared memory and semaphores, as well as log filed for each mode. We add 1/2/3 to the shared memory name (`/bmp_memory`) and the semapore name (`/bmp_sem`) for each mode (1 for Normal, 2 for Server and 3 is for Client).
+- To allow complete siumulation of this server-client communication in a single computer, we create different shared memory and semaphores, as well as log files for each mode. We add 1/2/3 to the shared memory name (`/bmp_memory`), the semapore name (`/bmp_sem`) and log file (e.g. `processA1.txt`) for each mode (1 for Normal, 2 for Server and 3 is for Client).
 
 
 ## Brief Explanations about the processes
@@ -86,7 +86,7 @@ The two consoles:
 	- Draws and moves the object (the blue circle).
 	- Creates and maps the shared memory object to share the rbg_pixel_t matrix among the processes for communication.
 	- Uses semaphore while writing the pixel matrix to shared memory. Uses the function `save_bmp` to save the bitmap image in the form of `rgb_pixel_t` matrix in the shared memory.
-	- Checks for keyboard (in the normal (`n`) and client `c` modes) and mouse events, moves the object as per the command given by the keyboard and saves a snapshot or terminates the processes upon pressing the respective buttons as mentioned.
+	- Checks for keyboard (in the normal (`n`) and client (`c`) modes) and mouse events, moves the object as per the command given by the keyboard and saves a snapshot or terminates the processes upon pressing the respective buttons as mentioned.
 	- Implements 3 buttons as mentioned before to change the modality and itself becomes the Server or Client based on the requested mode by the user. The master does not play a role in this functionality and waits for the process to finish.
 
 - Process B
@@ -99,4 +99,4 @@ The two consoles:
 ## Known Issues:
 
 - Upon executing the program for the first time, Process B may fail to open one or more of the file descriptors (shared memory, log file, or the semaphore). In that case, simply closing the konsoles and rerunning the program would solve the problem.
-- As mentioned by the Professor, there are still some problems trying to perform this socket communication between different systems using WSL or between a WSL and Native Linux system. The client modality works well (between WSL as Client and A native linux system as server) but the server mode functionality in WSL is prone to failing sometimes to connecting to a remote host.
+- As mentioned by the Professor, there are still some problems trying to perform this socket communication between different systems using WSL or between a WSL and Native Linux system. The client modality works well (connection between WSL as Client and a native linux system as server has been tested successfully) but the server mode functionality in WSL is prone to failing sometimes to stablish a connection to a remote host.
