@@ -33,17 +33,15 @@ int main() {
 
     char ip[15] = {}, port[10] = {};
     int choice;
-    int flag_mode = 1;
 
     printf("Choose execution type (write number):\n");
     printf("1-Normal\n");
     printf("2-Server\n");
     printf("3-Client\n");
-    while (flag_mode) {
-      if (scanf("%d", &choice) > 0 && (choice == 1 || choice == 2 || choice == 3)) {
-        flag_mode = 0;
-      } else printf("Wrong input. Please try again.");
-    }
+    if (!(scanf("%d", &choice) > 0 && (choice == 1 || choice == 2 || choice == 3))) {
+      printf("Wrong input. Please try again.\n");
+      exit(1);
+    } 
     if (choice != 1) {
       printf("Enter the port (write 0 to use default port):\n");
       scanf("%s", port);
