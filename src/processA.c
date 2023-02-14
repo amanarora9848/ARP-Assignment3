@@ -288,7 +288,7 @@ int main(int argc, char *argv[]) {
     while (!finish)
     {
         // Get input in non-blocking mode
-        int cmd, cmd_server = 0;
+        int cmd = 0, cmd_server = 0;
         if (mode == 2) {
             // Use a select to read from client in non-blocking mode
 
